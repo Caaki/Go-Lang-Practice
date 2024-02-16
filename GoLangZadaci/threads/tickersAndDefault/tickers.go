@@ -1,8 +1,6 @@
-package main
+package tickersAndDefault
 
-import (
-	"time"
-)
+import "time"
 
 func saveBackups(snapshotTicker, saveAfter <-chan time.Time, logChan chan string) {
 
