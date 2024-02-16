@@ -1,37 +1,35 @@
 package main
 
 import (
+	"sync"
 	"time"
 )
 
-func saveBackups(snapshotTicker, saveAfter <-chan time.Time, logChan chan string) {
+type safeCounter struct {
+	counts map[string]int
+	mu     *sync.Mutex
+}
 
-	for {
-		select {
-		case <-snapshotTicker:
-			takeSnapshot(logChan)
-		case <-saveAfter:
-			saveSnapshot(logChan)
-			return
-		default:
-			waitForData(logChan)
-			time.Sleep(time.Millisecond * 500)
-		}
-	}
+func (sc safeCounter) inc(key string) {
+	sc.mu.Lock()
+	sc.counts[key]++
+	sc.mu.Unlock()
+}
 
+func (sc safeCounter) val(key string) int {
+	return sc.counts[key]
 }
 
 // don't touch below this line
 
-func takeSnapshot(logChan chan string) {
-	logChan <- "Taking a backup snapshot..."
+func (sc safeCounter) slowIncrement(key string) {
+	tempCounter := sc.counts[key]
+	time.Sleep(time.Microsecond)
+	tempCounter++
+	sc.counts[key] = tempCounter
 }
 
-func saveSnapshot(logChan chan string) {
-	logChan <- "All backups saved!"
-	close(logChan)
-}
-
-func waitForData(logChan chan string) {
-	logChan <- "Nothing to do, waiting..."
+func (sc safeCounter) slowVal(key string) int {
+	time.Sleep(time.Microsecond)
+	return sc.counts[key]
 }
