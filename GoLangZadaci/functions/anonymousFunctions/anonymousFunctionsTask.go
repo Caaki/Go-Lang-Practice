@@ -3,12 +3,13 @@ package anonymousFunctions
 import "fmt"
 
 func printReports(messages []string) {
+
 	for _, message := range messages {
-		printMessage := func(msg string) {
-			fmt.Println(len(msg) * 2)
-		}
-		printMessage(message)
+		printCostReport(func(s string) int {
+			return len(s) * 2
+		}, message)
 	}
+
 }
 
 // don't touch below this line
